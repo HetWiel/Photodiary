@@ -1,6 +1,7 @@
 // Photodiary: reads /data/index.json (written by server/ on the VPS) and uses it to fill
 // today's plate on / and the list on /archive/.
 (function () {
+  lamp();
   var today = document.querySelector('.today[data-source]');
   var archive = document.querySelector('.register[data-source]');
   var root = today || archive;
@@ -9,6 +10,23 @@
 
   var dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   function formatDate(iso) { return dateFormat.format(new Date(iso + 'T12:00:00Z')); }
+
+  // The lamp flickers now and then: at irregular moments, once or twice, too briefly to be sure.
+  function lamp() {
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var b = document.body;
+    function dip(ms, then) { b.classList.add('flicker'); setTimeout(function () { b.classList.remove('flicker'); if (then) then(); }, ms); }
+    function next() {
+      setTimeout(function () {
+        if (!document.hidden) {
+          if (Math.random() < .35) dip(60, function () { setTimeout(function () { dip(110); }, 90); });
+          else dip(70 + Math.random() * 90);
+        }
+        next();
+      }, 20000 + Math.random() * 50000);
+    }
+    next();
+  }
 
   function el(tag, className, text) {
     var e = document.createElement(tag);
@@ -61,6 +79,7 @@
     button.hidden = false;
 
     function set(playing) {
+      document.body.classList.toggle('red-lamp', playing);
       status.textContent = playing ? '■ ' + button.dataset.stop : '▶ ' + button.dataset.listen;
       button.setAttribute('aria-label', (playing ? button.dataset.stop : button.dataset.listen) + ': ' + label);
     }
@@ -92,12 +111,14 @@
       frame.title = label;
       frameBox.appendChild(frame);
       plate.classList.add('playing-video');
+      document.body.classList.add('red-lamp');
       close.hidden = false;
       close.focus();
     });
     close.addEventListener('click', function () {
       if (frame) frame.remove();
       plate.classList.remove('playing-video');
+      document.body.classList.remove('red-lamp');
       close.hidden = true;
       button.focus();
     });

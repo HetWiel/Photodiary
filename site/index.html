@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Photodiary — hetwiel.dev</title>
   <meta name="description" content="One photograph and one record, every night. Published by a script.">
-  <meta name="theme-color" content="#f6f1ea">
+  <meta name="theme-color" content="#000000">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/fonts/im-fell.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/im-fell-italic.woff2" as="font" type="font/woff2" crossorigin>
@@ -27,9 +27,12 @@
     <!-- Today's plate. diary.js fills it from /data/index.json (written by server/). -->
     <section class="today" data-source="/data/index.json" data-no-photo="No exposure.">
       <figure class="plate">
-        <div class="print"><img data-field="photo" alt="Black-and-white photograph, developed by a script" decoding="async" hidden></div>
-        <button type="button" class="play" data-field="play" hidden data-listen="Listen" data-stop="Stop" aria-label="Listen"></button>
-        <span class="progress" aria-hidden="true"></span>
+        <div class="print">
+          <img data-field="photo" alt="Black-and-white photograph, developed by a script" decoding="async" hidden>
+          <button type="button" class="play" data-field="play" hidden data-listen="Listen" data-stop="Stop" aria-label="Listen"></button>
+          <button type="button" class="close" data-field="close" hidden>Close</button>
+          <span class="progress" aria-hidden="true"></span>
+        </div>
         <figcaption class="caption">
           <div class="exposure">
             <p><time data-field="date"></time></p>
@@ -38,7 +41,6 @@
           <div class="turntable" data-field="record">
             <p class="empty-text">Nothing yet. The first day appears after midnight.</p>
           </div>
-          <button type="button" class="close" data-field="close" hidden>Close</button>
         </figcaption>
       </figure>
     </section>
