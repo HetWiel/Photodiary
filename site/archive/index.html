@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Archive — Dagboek</title>
+  <title>Archive — Photodiary</title>
   <meta name="description" content="Every day so far. One photograph, one record.">
   <meta name="theme-color" content="#f6f1ea">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/fonts/im-fell.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/style.css">
-  <script src="/assets/dagboek.js" defer></script>
+  <script src="/assets/diary.js" defer></script>
 </head>
 <body>
-  <a class="skip" href="#inhoud">Skip to content</a>
-  <header class="kop">
-    <a class="mark" href="/">Dagboek</a>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="masthead">
+    <a class="mark" href="/">Photodiary</a>
     <nav aria-label="Menu">
       <a href="/">Today</a>
       <a href="/archive/" aria-current="page">Archive</a>
@@ -22,18 +22,18 @@
     </nav>
   </header>
 
-  <main id="inhoud">
-    <section class="opening">
+  <main id="content">
+    <section class="intro">
       <h1><cite>Archive</cite></h1>
       <p>Every day so far. One photograph, one record.</p>
     </section>
 
-    <!-- dagboek.js vult deze lijst uit /data/index.json -->
-    <table class="register" data-bron="/data/index.json" data-camera="Phone camera" data-geen-foto="No exposure." data-alt="Black-and-white photograph, developed by a script">
+    <!-- diary.js fills this list from /data/index.json -->
+    <table class="register" data-source="/data/index.json" data-camera="Phone camera" data-no-photo="No exposure." data-alt="Black-and-white photograph, developed by a script">
       <thead><tr><th class="nr" scope="col">No.</th><th scope="col">Date</th><th scope="col">Plate</th><th scope="col">Exposure</th><th scope="col">On the turntable</th></tr></thead>
       <tbody></tbody>
     </table>
-    <p class="opening leeg">Nothing yet. The first day appears after midnight.</p>
+    <p class="intro empty">Nothing yet. The first day appears after midnight.</p>
   </main>
 
   <footer>A project on <a href="https://hetwiel.dev">hetwiel.dev</a>.</footer>

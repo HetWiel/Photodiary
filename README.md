@@ -1,33 +1,33 @@
-# Dagboek
+# Photodiary
 
-Elke nacht één foto en één plaat, op **https://dagboek.hetwiel.dev**.
-Een script keurt de foto (geen gezichten), ontwikkelt hem in zwart-wit in het formaat van de
-wieltekening op hetwiel.dev (9:5) en kiest er een plaat uit de Discogs-krat bij, met een fragment
-om te luisteren.
+One photograph and one record every night, at **https://photodiary.hetwiel.dev**.
+A script checks the photo (no faces), develops it in black and white in the format of the
+wheel drawing on hetwiel.dev (9:5) and picks a record from the Discogs crate to go with it,
+with a snippet to listen to.
 
 ```
-site/     de website: Today (/) en Archive (/archive/). Gewone HTML, geen bouwstap.
-server/   de container: het loket voor de telefoon (upload.hetwiel.dev) en de nachtelijke ronde.
-          Uitleg, instellen en de telefoon: server/README.md
+site/     the website: Today (/) and Archive (/archive/). Plain HTML, no build step.
+server/   the container: the upload endpoint for the phone (upload.hetwiel.dev) and the nightly round.
+          How it works, setup and the phone: server/README.md
 ```
 
-## Hoe het live komt
+## How it goes live
 
-Deze repo draait mee in de server-setup van **HetWiel/hetwiel**. Die bouwrobot haalt deze repo op
-bij elke push naar hetwiel, elke ochtend, of als je hem met de hand start (Actions → Deploy hetwiel →
-Run workflow), en zet:
+This repo is part of the server setup in **HetWiel/hetwiel**. Its deploy workflow fetches this repo
+on every push to hetwiel, every morning, or when started by hand (Actions → Deploy hetwiel →
+Run workflow), and puts:
 
-- `site/` in `sites/dagboek` → Caddy serveert het op dagboek.hetwiel.dev;
-- `server/` in `diensten/dagboek` → `docker compose` bouwt en start de container.
+- `site/` in `sites/photodiary` → Caddy serves it on photodiary.hetwiel.dev;
+- `server/` in `services/photodiary` → `docker compose` builds and starts the container.
 
-Een wijziging hier staat dus live na de volgende deploy van hetwiel.
+A change here is live after the next deploy of hetwiel.
 
-## Lokaal kijken
+## Viewing locally
 
 ```bash
 cd site && python3 -m http.server 8000
 ```
 
-Zonder `data/index.json` toont de site "Nothing yet". Zet er een kopie van de echte neer
-(`https://dagboek.hetwiel.dev/data/index.json`) in `site/data/` om met echte gegevens te kijken;
-`site/data/` staat in `.gitignore`.
+Without `data/index.json` the site shows "Nothing yet". Put a copy of the real one
+(`https://photodiary.hetwiel.dev/data/index.json`) in `site/data/` to look at real data;
+`site/data/` is in `.gitignore`.

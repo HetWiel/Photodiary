@@ -1,70 +1,72 @@
-# De server van het dagboek
+# The Photodiary server
 
-Elke nacht één foto en één plaat op dagboek.hetwiel.dev (*Today* op `/`, alles op `/archive/`).
+One photograph and one record every night on photodiary.hetwiel.dev (*Today* at `/`, everything at `/archive/`).
 
-## Hoe het werkt
+## How it works
 
-1. **Insturen.** Deel een foto vanaf de telefoon naar `https://upload.hetwiel.dev/foto`.
-   Hij wordt meteen gekeurd: een gezicht gevonden (YuNet, ook in een opgehelderde kopie) → geweigerd.
-   Lichte foto's mogen: bij het ontwikkelen worden ze donkerder belicht (zie `DOEL_HELDERHEID`).
-   Geweigerd = direct weg, er wordt niets bewaard. De telefoon krijgt de reden te zien.
-2. **Wachten.** Een goedgekeurde foto staat minstens `WACHTTIJD_UUR` (24) in de wachtrij.
-   Spijt? `POST /terug` haalt de laatst ingestuurde weer weg.
-3. **De ronde** (`PUBLICEER_OM`, 00:10 Nederlandse tijd). De oudste foto die lang genoeg wacht
-   wordt nog een keer gekeurd en ontwikkeld: bijgesneden tot 9:5 (het formaat van de wieltekening),
-   zwart-wit, diepe schaduwen, lichte foto's donkerder belicht, het vignet van de wieltekening, korrel. Het nieuwe bestand heeft geen metadata (geen GPS, geen toestel);
-   het origineel wordt gewist. Alleen sluitertijd, ISO en het tijdstip gaan mee.
-4. **De krat.** Een willekeurige plaat uit de Discogs-collectie die nog niet geweest is.
-   Geen hoes, alleen de gegevens, met een link naar de release.
-   Plus een fragment: een voorproef van 30 s via iTunes, anders de YouTube-video die op Discogs
-   bij de release staat. Klik op de foto op *Today* om te luisteren.
-5. Alles komt in `index.json`, die Caddy serveert op `dagboek.hetwiel.dev/data/`.
+1. **Sending.** Share a photo from the phone to `https://upload.hetwiel.dev/photo`.
+   It is checked straight away: a face found (YuNet, also on a brightened copy) → rejected.
+   Bright photos are fine: they are exposed darker when developed (see `TARGET_BRIGHTNESS`).
+   Rejected = deleted immediately, nothing is kept. The phone shows the reason.
+2. **Waiting.** An accepted photo stays in the queue for at least `MIN_WAIT_HOURS` (24).
+   Changed your mind? `POST /undo` removes the most recently sent one.
+3. **The round** (`PUBLISH_AT`, 00:10 Amsterdam time). The oldest photo that has waited long enough
+   is checked once more and developed: cropped to 9:5 (the format of the wheel drawing),
+   black and white, deep shadows, bright photos exposed darker, the vignette of the wheel drawing, grain.
+   The new file has no metadata (no GPS, no camera); the original is deleted.
+   Only shutter speed, ISO and the time of day are kept.
+4. **The crate.** A random record from the Discogs collection that hasn't been played yet.
+   No cover, just the details, with a link to the release.
+   Plus a snippet: a 30-second preview from iTunes, otherwise the YouTube video listed on Discogs
+   for the release. Click the photo on *Today* to listen.
+5. Everything goes into `index.json`, which Caddy serves at `photodiary.hetwiel.dev/data/`.
 
-Geen foto die dag? Dan alleen de plaat, met een lege zwarte plaat ernaast.
+No photo that day? Then just the record, with an empty black plate next to it.
 
-**Let op:** de gezichtsherkenning is een vangnet, geen garantie. Iemand van achteren,
-of een kind half in beeld, wordt niet altijd herkend. De echte filter is dat alleen
-foto's binnenkomen die je zelf bewust deelt.
+**Note:** face detection is a safety net, not a guarantee. Someone seen from behind,
+or a child half in frame, isn't always detected. The real filter is that only
+photos you deliberately share come in.
 
-## Instellen (eenmalig, op de server)
+## Setup (once, on the server)
 
 ```bash
 cd /opt/hetwiel && mkdir -p env
-cat > env/dagboek.env <<EOT
+cat > env/photodiary.env <<EOT
 UPLOAD_TOKEN=$(openssl rand -hex 24)
-DISCOGS_USER=<je Discogs-gebruikersnaam>
-# DISCOGS_TOKEN=<alleen nodig als je collectie niet openbaar is>
+DISCOGS_USER=<your Discogs username>
+# DISCOGS_TOKEN=<only needed if your collection isn't public>
 EOT
-chmod 600 env/dagboek.env
-cat env/dagboek.env          # het token heb je zo nodig op de telefoon
-docker compose up -d dagboek
-docker logs dagboek          # "upload aan | krat <naam>"
+chmod 600 env/photodiary.env
+cat env/photodiary.env          # you'll need the token on the phone
+docker compose up -d photodiary
+docker logs photodiary          # "upload on | crate <name>"
 ```
 
-Optioneel in hetzelfde bestand: `PUBLICEER_OM=00:10`, `WACHTTIJD_UUR=24`, `DOEL_HELDERHEID=0.3` (lager = donkerder platen).
+Optional in the same file: `PUBLISH_AT=00:10`, `MIN_WAIT_HOURS=24`, `TARGET_BRIGHTNESS=0.3` (lower = darker plates).
 
-## De telefoon (Android, app *HTTP Shortcuts*)
+## The phone (Android, *HTTP Shortcuts* app)
 
-Shortcut **Dagboek**:
-- Method `POST`, URL `https://upload.hetwiel.dev/foto`
-- Request Body: **File** → *File from share* (of: *Image*)
+Shortcut **Photodiary**:
+- Method `POST`, URL `https://upload.hetwiel.dev/photo`
+- Request Body: **File** → *File from share* (or: *Image*)
 - Header `Authorization` = `Bearer <UPLOAD_TOKEN>`
-- Trigger & Execution Settings: **Allow receiving shared files** aan
-- Response Handling: toon het antwoord als melding
+- Trigger & Execution Settings: **Allow receiving shared files** on
+- Response Handling: show the response as a notification
 
-Daarna staat *Dagboek* in het deelmenu van de galerij.
+*Photodiary* then appears in the gallery's share menu.
 
-Shortcut **Dagboek terug** (zelfde header): `POST https://upload.hetwiel.dev/terug`.
-Shortcut **Dagboek status** (zelfde header): `GET https://upload.hetwiel.dev/status`.
+Shortcut **Photodiary undo** (same header): `POST https://upload.hetwiel.dev/undo`.
+Shortcut **Photodiary status** (same header): `GET https://upload.hetwiel.dev/status`.
 
-## Bestanden
+## Files
 
 ```
-dagboek.py   het loket en de dagelijkse ronde
-beeld.py     keuren en ontwikkelen
-krat.py      Discogs
-face_detection_yunet_2023mar.onnx   gezichtsmodel (OpenCV Zoo, MIT-licentie)
+diary.py     the upload endpoint and the daily round
+photo.py     checking and developing
+crate.py     Discogs
+migrate.py   one-time conversion of data from the old Dutch-named version (can go after one start)
+face_detection_yunet_2023mar.onnx   face model (OpenCV Zoo, MIT licence)
 ```
 
-Data staat in Docker-volumes: `dagboek_data` (wachtrij, krat, wat al gedraaid is: privé)
-en `dagboek_publiek` (de ontwikkelde foto's en `index.json`: online).
+Data lives in Docker volumes: `photodiary_data` (queue, crate, what has been played: private)
+and `photodiary_public` (the developed photos and `index.json`: online).
