@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dagboek — hetwiel.dev</title>
+  <meta name="description" content="One photograph and one record, every night. Published by a script.">
+  <meta name="theme-color" content="#f6f1ea">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/fonts/im-fell.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/im-fell-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/dagboek.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#inhoud">Skip to content</a>
+  <header class="kop">
+    <a class="mark" href="/">Dagboek</a>
+    <nav aria-label="Menu">
+      <a href="/" aria-current="page">Today</a>
+      <a href="/archive/">Archive</a>
+      <a href="https://hetwiel.dev">hetwiel.dev</a>
+    </nav>
+  </header>
+
+  <main id="inhoud">
+    <!-- De plaat van vandaag. dagboek.js vult hem uit /data/index.json (gemaakt door server/). -->
+    <section class="vandaag" data-bron="/data/index.json" data-geen-foto="No exposure.">
+      <figure class="plaat">
+        <div class="afdruk"><img data-veld="foto" alt="Black-and-white photograph, developed by a script" decoding="async" hidden></div>
+        <button type="button" class="speel" data-veld="speel" hidden data-luister="Listen" data-stop="Stop" aria-label="Listen"></button>
+        <span class="voortgang" aria-hidden="true"></span>
+        <figcaption class="opschrift">
+          <div class="opname">
+            <p><time data-veld="datum"></time></p>
+            <p data-veld="techniek"></p>
+          </div>
+          <div class="draait" data-veld="plaat">
+            <p class="leeg-tekst" data-veld="leeg">Nothing yet. The first day appears after midnight.</p>
+          </div>
+          <button type="button" class="sluit" data-veld="sluit" hidden>Close</button>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="uitleg">
+      <h1><cite>Dagboek</cite>, 2026</h1>
+      <div>
+        <p>Every night a script takes one photograph from a queue and one record from the crate,
+          and publishes the pair. The same script develops the photograph: black and white,
+          deep shadows, grain. Faces are refused. Click the photograph to hear the record.</p>
+        <p class="toegang"><a href="/archive/">All days</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>A project on <a href="https://hetwiel.dev">hetwiel.dev</a>.</footer>
+</body>
+</html>
