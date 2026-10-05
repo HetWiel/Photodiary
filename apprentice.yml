@@ -1,0 +1,76 @@
+# The Apprentice: the ledger for this work.
+#
+# One entry per material the machine used to build this work.
+# level, from low to high:
+#   seen        the maker has looked at it; the machine built it
+#   understood  the maker explained it back in his own words and passed the questions
+#   by-hand     the maker made a change with it himself, without the machine typing
+#   taught      the maker can explain it to someone else, from scratch
+# since: the date the material reached its current level.
+#
+# The cards (what it is, where it lives, the questions, the by-hand task) are in APPRENTICE.md.
+# hetwiel.dev/apprentice/ is built from this file. Only change a level after a teach-back.
+
+work: Photodiary
+opened: 2026-10-05
+materials:
+  - id: http-endpoint
+    name: An upload endpoint
+    note: A small web server of its own that the phone can send a photo to.
+    level: seen
+    since: 2026-10-05
+  - id: bearer-token
+    name: A secret token
+    note: Only requests carrying the right token get in, and guessing is made slow on purpose.
+    level: seen
+    since: 2026-10-05
+  - id: phone-share
+    name: Sharing from the phone
+    note: A shortcut in the phone's share menu that sends a photo straight to the server.
+    level: seen
+    since: 2026-10-05
+  - id: queue
+    name: A queue on disk
+    note: Photos wait in a folder for at least a day, oldest first, and can be taken back.
+    level: seen
+    since: 2026-10-05
+  - id: threads
+    name: Two things at once
+    note: One part of the program listens for uploads while another waits for midnight; a lock keeps them apart.
+    level: seen
+    since: 2026-10-05
+  - id: time-zones
+    name: Clocks and time zones
+    note: The round runs at ten past midnight in Amsterdam, wherever the server happens to be.
+    level: seen
+    since: 2026-10-05
+  - id: face-detection
+    name: Face detection
+    note: A small trained model looks for faces, twice, and a photo with a face is refused.
+    level: seen
+    since: 2026-10-05
+  - id: image-processing
+    name: Developing a photo in code
+    note: Cropping, black and white, curves, vignette and grain, as arithmetic on a grid of numbers.
+    level: seen
+    since: 2026-10-05
+  - id: metadata
+    name: Photo metadata
+    note: What a photo knows about itself (place, camera, time), and throwing almost all of it away.
+    level: seen
+    since: 2026-10-05
+  - id: external-apis
+    name: Other people's APIs
+    note: Asking Discogs for the record collection and iTunes for a snippet to listen to.
+    level: seen
+    since: 2026-10-05
+  - id: dockerfile
+    name: Building a container
+    note: A recipe that turns the code into a box that runs as its own, unprivileged user.
+    level: seen
+    since: 2026-10-05
+  - id: migration
+    name: Moving data safely
+    note: A one-time conversion when the project was renamed, without losing a single photo.
+    level: seen
+    since: 2026-10-05
