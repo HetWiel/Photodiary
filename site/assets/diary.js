@@ -1,5 +1,5 @@
 // Photodiary: reads /data/index.json (written by server/ on the VPS).
-// On / it projects one night (the newest, or ?d=YYYY-MM-DD) with its words as subtitles;
+// On / it projects one night (the newest, or ?d=YYYY-MM-DD) with its record as subtitles;
 // on /archive/ it lays all nights out as a contact sheet.
 (function () {
   var today = document.querySelector('.today[data-source]');
@@ -62,24 +62,6 @@
         next();
       }, 20000 + Math.random() * 50000);
     })();
-  }
-
-  // Subtitles: the lines come one at a time, with silences between, then start again.
-  function subtitles(box, lines) {
-    if (!lines.length) return;
-    if (still) { box.textContent = ''; box.appendChild(lines[lines.length - 1]); box.classList.add('on'); return; }
-    var i = 0;
-    function show() {
-      box.textContent = '';
-      box.appendChild(lines[i].cloneNode(true));
-      box.classList.add('on');
-      setTimeout(function () {
-        box.classList.remove('on');
-        i = (i + 1) % lines.length;
-        setTimeout(show, i === 0 ? 9000 : 1600);
-      }, 4200);
-    }
-    setTimeout(show, 2600);   // first let the photograph develop
   }
 
   // Click the photo (or "Listen" under it): a snippet of the record. A preview plays as audio with a
@@ -172,16 +154,13 @@
 
     var rec = today.querySelector('[data-field=record]');
     rec.textContent = '';
-    var lines = [el('p', null, date(d.date) + '.'), el('p', null, d.photo ? exposure(d.photo) : today.dataset.noPhoto)];
     if (d.record) {
-      rec.appendChild(el('p', null, 'On the turntable:'));
-      rec.appendChild(recordLine(d.record, true));
-      rec.appendChild(el('p', null, recordInfo(d.record)));
-      lines.push(recordLine(d.record));
-      lines.push(el('p', null, [d.record.label, d.record.year].filter(Boolean).join(', ') + '.'));
+      var head = recordLine(d.record, true);
+      head.insertBefore(document.createTextNode('On the turntable: '), head.firstChild);
+      rec.appendChild(head);
+      rec.appendChild(el('p', 'info', recordInfo(d.record)));
       sound(plate, d.record.sound, d.record.artist + ', ' + d.record.title, today.querySelector('[data-field=status]'));
     }
-    subtitles(today.querySelector('[data-field=subtitle]'), lines);
 
     // the way to the neighbouring nights
     var before = today.querySelector('[data-field=before]');

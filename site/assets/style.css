@@ -1,6 +1,6 @@
 /* Photodiary — a projection in a dark room.
    Each night is one frame on a screen; its light spills onto the wall, flickers now and then (diary.js)
-   and turns red while the record plays. The words come as subtitles, one line at a time.
+   and turns red while the record plays. The record is printed over it as subtitles.
    Everything else is typed, like a note left on the desk at night. */
 
 @font-face { font-family: "Courier Prime"; font-style: normal; font-weight: 400; font-display: swap; src: url("/assets/fonts/courier-prime.woff2") format("woff2"); }
@@ -46,7 +46,8 @@ footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; col
 
 /* ── Tonight: the screen fills the first view; nothing else is lit ── */
 .today { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 1.1rem; padding: 2rem 0 3rem; }
-.screen { position: relative; margin: 0; width: min(100vw - 2 * var(--edge) - 2rem, (100svh - 13rem) * 9 / 5, 74rem); }
+.today { --screen: min(100vw - 2 * var(--edge) - 2rem, (100svh - 15rem) * 9 / 5, 74rem); }
+.screen { position: relative; margin: 0; width: var(--screen); }
 
 /* the light of the screen falls on the wall around it; while the record plays, it goes red */
 .screen::before, .screen::after {
@@ -71,28 +72,29 @@ footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; col
 .progress { position: absolute; left: 0; bottom: 0; z-index: 3; height: 2px; width: 0; background: #9c1c14; transition: width .25s linear; }
 .close { position: absolute; top: .75rem; right: .75rem; z-index: 3; font: inherit; font-size: .875rem; color: var(--paper); background: #000; border: 0; padding: .1rem .55rem; cursor: pointer; }
 
-/* subtitles: one line at a time, over the bottom of the frame */
+/* printed over the photo: the moment in the top corner, the record as subtitles at the bottom */
+.caption { position: absolute; inset: 0; z-index: 2; pointer-events: none; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 3px #000; }
+.caption a, .caption button { pointer-events: auto; }
+.stamp { position: absolute; top: 4%; left: 3%; font-size: clamp(.6875rem, 1vw, .875rem); line-height: 1.45; color: var(--paper); opacity: .8; }
 .subtitle {
-  position: absolute; left: 6%; right: 6%; bottom: 7%; z-index: 2; pointer-events: none;
-  text-align: center; font-size: clamp(.8125rem, 1.55vw, 1.3rem); line-height: 1.35; color: var(--subtitle);
+  position: absolute; left: 6%; right: 6%; bottom: 6%; z-index: 2; pointer-events: none;
+  text-align: center; font-size: clamp(.8125rem, 1.45vw, 1.25rem); line-height: 1.4; color: var(--subtitle);
   text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 3px #000;
-  opacity: 0; transition: opacity .35s;
 }
-.subtitle.on { opacity: 1; }
-.playing-video .subtitle, .playing-video .play { display: none; }
+.subtitle a { text-decoration-color: rgba(236, 227, 180, .4); }
+.subtitle a:hover { text-decoration-color: var(--subtitle); }
+.subtitle .info { margin-top: .2em; font-size: .72em; color: var(--paper); }
+.playing-video .caption, .playing-video .play { display: none; }
 
-/* under the screen, small: whether it plays, and the way to the other nights */
-.reel { width: 100%; display: flex; flex-wrap: wrap; gap: .25rem 2rem; justify-content: flex-end; font-size: .8125rem; color: var(--faint); }
-.reel .status { margin-right: auto; }
+/* under the screen: what this is, whether it plays, and the way to the other nights */
+.under { width: var(--screen); display: grid; gap: 1rem 3rem; font-size: .875rem; line-height: 1.6; }
+@media (min-width: 760px) { .under { grid-template-columns: minmax(0, 40rem) auto; justify-content: space-between; } }
+.note { color: var(--faint); }
+.note cite { color: var(--paper); }
+.reel { display: flex; flex-direction: column; align-items: flex-end; gap: .15rem; color: var(--faint); white-space: nowrap; }
 .reel a { text-decoration: none; }
-.listen { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.listen { font: inherit; color: var(--paper); background: none; border: 0; padding: 0; cursor: pointer; }
 .listen:hover { color: var(--subtitle); }
-
-/* ── The note: further down, typed, after a stretch of dark ── */
-.note { width: min(100%, 36rem); margin: 10rem auto 0; padding-inline: 1rem; }
-.note h1 { font: inherit; margin-bottom: 1.5rem; color: var(--faint); }
-.note h1 cite { color: var(--paper); }
-.note p + p { margin-top: 1.1rem; }
 
 /* ── Archive: a contact sheet ── */
 .archive { padding: 4.5rem 1.5rem 0; }
@@ -104,7 +106,7 @@ footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; col
 .frame { position: relative; display: block; aspect-ratio: 9 / 5; background: #050505; overflow: hidden; }
 .frame img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: brightness(.6); transition: opacity 1.6s ease-out, filter .8s; }
 .frame img.developed { opacity: .8; }
-.frame .subtitle { font-size: .75rem; bottom: 8%; left: 4%; right: 4%; }
+.frame .subtitle { font-size: .75rem; bottom: 8%; left: 4%; right: 4%; opacity: 0; transition: opacity .35s; }
 .sheet a:hover .frame img.developed, .sheet a:focus-visible .frame img.developed { opacity: 1; filter: none; }
 .sheet a:hover .subtitle, .sheet a:focus-visible .subtitle { opacity: 1; }
 .sheet a:hover { color: var(--paper); }
@@ -117,7 +119,10 @@ footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; col
   :root { --edge: 2rem; }
   .edge { font-size: .75rem; gap: 1.75rem; }
   .screen { width: calc(100vw - 2 * var(--edge) - .5rem); }
-  .today { padding-bottom: 6rem; }
+  .today { padding-bottom: 4rem; }
+  .reel { align-items: flex-start; }
+  .caption .subtitle { font-size: .6875rem; bottom: 4%; left: 3%; right: 3%; }
+  .stamp { font-size: .625rem; }
   .archive { padding-inline: .25rem; }
   .sheet { grid-template-columns: 1fr 1fr; gap: 1.5rem .35rem; }
   .mark { font-size: .6875rem; }
@@ -125,5 +130,5 @@ footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; col
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .print img, .frame img, .screen::before, .screen::after, .subtitle { transition: none; }
+  .print img, .frame img, .screen::before, .screen::after, .frame .subtitle { transition: none; }
 }
