@@ -207,21 +207,26 @@ class Upload(BaseHTTPRequestHandler):
         upcoming = next_round(datetime.now(TZ)).strftime("%a %d %b, %H:%M")
         return f"{n} waiting. Next round: {upcoming}."
 
+    def route(self):
+        return self.path.split("?", 1)[0]  # ignore any query string
+
     def do_GET(self):
-        if self.path == "/health":
+        path = self.route()
+        if path == "/health":
             return self.reply(200, "ok")
-        if self.path == "/status":
+        if path == "/status":
             if self.authorised():
                 self.reply(200, self.summary())
             return
         self.reply(404, "Not here.")
 
     def do_POST(self):
-        if self.path not in ("/photo", "/undo"):
+        path = self.route()
+        if path not in ("/photo", "/undo"):
             return self.reply(404, "Not here.")
         if not self.authorised():
             return
-        if self.path == "/undo":
+        if path == "/undo":
             with lock:
                 queue = waiting()
                 if not queue:
