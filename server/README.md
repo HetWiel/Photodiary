@@ -36,7 +36,7 @@ UPLOAD_TOKEN=$(openssl rand -hex 24)
 DISCOGS_USER=<your Discogs username>
 # DISCOGS_TOKEN=<only needed if your collection isn't public>
 EOT
-chmod 600 env/photodiary.env
+chmod 600 env/photodiary.env && chown deploy:deploy env/photodiary.env   # the deploy reads it as user deploy
 cat env/photodiary.env          # you'll need the token on the phone
 docker compose up -d photodiary
 docker logs photodiary          # "upload on | crate <name>"
