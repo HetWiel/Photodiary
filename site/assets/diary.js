@@ -1,32 +1,17 @@
-// Photodiary: reads /data/index.json (written by server/ on the VPS) and uses it to fill
-// today's plate on / and the list on /archive/.
+// Photodiary: reads /data/index.json (written by server/ on the VPS).
+// On / it projects one night (the newest, or ?d=YYYY-MM-DD) with its words as subtitles;
+// on /archive/ it lays all nights out as a contact sheet.
 (function () {
-  lamp();
   var today = document.querySelector('.today[data-source]');
-  var archive = document.querySelector('.register[data-source]');
-  var root = today || archive;
+  var sheet = document.querySelector('.sheet[data-source]');
+  var root = today || sheet;
   if (!root) return;
   var DATA = '/data/';
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-  function formatDate(iso) { return dateFormat.format(new Date(iso + 'T12:00:00Z')); }
-
-  // The lamp flickers now and then: at irregular moments, once or twice, too briefly to be sure.
-  function lamp() {
-    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var b = document.body;
-    function dip(ms, then) { b.classList.add('flicker'); setTimeout(function () { b.classList.remove('flicker'); if (then) then(); }, ms); }
-    function next() {
-      setTimeout(function () {
-        if (!document.hidden) {
-          if (Math.random() < .35) dip(60, function () { setTimeout(function () { dip(110); }, 90); });
-          else dip(70 + Math.random() * 90);
-        }
-        next();
-      }, 20000 + Math.random() * 50000);
-    }
-    next();
-  }
+  var longDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  var shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  function date(iso, f) { return (f || longDate).format(new Date(iso + 'T12:00:00Z')); }
 
   function el(tag, className, text) {
     var e = document.createElement(tag);
@@ -35,53 +20,87 @@
     return e;
   }
 
-  // "1/15 s, ISO 2500, 23:52" (in the archive with "Phone camera, " in front)
-  function exposure(p, camera) {
-    var parts = camera ? [camera] : [];
-    if (p.shutter) parts.push(p.shutter);
-    if (p.iso) parts.push('ISO ' + p.iso);
-    if (p.time) parts.push(p.time);
-    return parts.join(', ');
+  // "23:41. 1/8 s, ISO 3200."
+  function exposure(p) {
+    var parts = [p.shutter, p.iso && 'ISO ' + p.iso].filter(Boolean).join(', ');
+    return [p.time, parts].filter(Boolean).join('. ') + '.';
   }
 
-  // Artist, <cite>Title</cite> (linking to Discogs) and below it label, catalogue number, year, format, style
-  function record(r, target) {
-    var line = el('p', 'turntable-title');
-    line.appendChild(document.createTextNode(r.artist + ', '));
-    var a = el('a');
-    a.href = r.link;
-    a.rel = 'noopener';
-    a.appendChild(el('cite', null, r.title));
-    line.appendChild(a);
-    target.appendChild(line);
+  // Artist, <cite>Title</cite> as one line; link to Discogs when asked
+  function recordLine(r, link) {
+    var p = el('p');
+    p.appendChild(document.createTextNode(r.artist + ', '));
+    var c = el('cite', null, r.title);
+    if (link && r.link) { var a = el('a'); a.href = r.link; a.rel = 'noopener'; a.appendChild(c); p.appendChild(a); }
+    else p.appendChild(c);
+    p.appendChild(document.createTextNode('.'));
+    return p;
+  }
+  function recordInfo(r) {
     var info = [r.label, r.catno, r.year].filter(Boolean).join(', ');
     var extra = [r.format, r.style].filter(Boolean).join('. ');
-    if (info || extra) target.appendChild(el('p', 'turntable-info', [info, extra].filter(Boolean).join('. ') + '.'));
+    return [info, extra].filter(Boolean).join('. ') + '.';
   }
 
   function develop(img) {
-    // the photo "develops": it slowly rises out of the black once loaded
+    // the photo slowly rises out of the black once loaded
     function done() { img.classList.add('developed'); }
     if (img.complete && img.naturalWidth) done(); else img.addEventListener('load', done);
   }
 
-  // Click the photo: a snippet of the record. A preview (iTunes) plays as audio,
-  // with a thin line as progress; a YouTube video plays visibly in place of the photo.
-  function sound(plate, s, label) {
+  // The light flickers now and then: at irregular moments, once or twice, too briefly to be sure.
+  function flicker() {
+    if (still) return;
+    var b = document.body;
+    function dip(ms, then) { b.classList.add('flicker'); setTimeout(function () { b.classList.remove('flicker'); if (then) then(); }, ms); }
+    (function next() {
+      setTimeout(function () {
+        if (!document.hidden) {
+          if (Math.random() < .35) dip(60, function () { setTimeout(function () { dip(110); }, 90); });
+          else dip(70 + Math.random() * 90);
+        }
+        next();
+      }, 20000 + Math.random() * 50000);
+    })();
+  }
+
+  // Subtitles: the lines come one at a time, with silences between, then start again.
+  function subtitles(box, lines) {
+    if (!lines.length) return;
+    if (still) { box.textContent = ''; box.appendChild(lines[lines.length - 1]); box.classList.add('on'); return; }
+    var i = 0;
+    function show() {
+      box.textContent = '';
+      box.appendChild(lines[i].cloneNode(true));
+      box.classList.add('on');
+      setTimeout(function () {
+        box.classList.remove('on');
+        i = (i + 1) % lines.length;
+        setTimeout(show, i === 0 ? 9000 : 1600);
+      }, 4200);
+    }
+    setTimeout(show, 2600);   // first let the photograph develop
+  }
+
+  // Click the photo (or "Listen" under it): a snippet of the record. A preview plays as audio with a
+  // thin red line as progress; a YouTube video plays in place of the photo. Meanwhile the light goes red.
+  function sound(plate, s, label, statusBox) {
     if (!s || !(s.preview || s.video)) return;
     var button = plate.querySelector('[data-field=play]');
     var close = plate.querySelector('[data-field=close]');
     var line = plate.querySelector('.progress');
     var frameBox = plate.querySelector('.print');
-    var head = plate.querySelector('.turntable-head');
-    var status = el('span', 'playing');
-    head.appendChild(status);
+    var status = el('button', 'listen');
+    status.type = 'button';
+    statusBox.appendChild(status);
     button.hidden = false;
 
     function set(playing) {
       document.body.classList.toggle('red-lamp', playing);
       status.textContent = playing ? '■ ' + button.dataset.stop : '▶ ' + button.dataset.listen;
-      button.setAttribute('aria-label', (playing ? button.dataset.stop : button.dataset.listen) + ': ' + label);
+      var name = (playing ? button.dataset.stop : button.dataset.listen) + ': ' + label;
+      button.setAttribute('aria-label', name);
+      status.setAttribute('aria-label', name);
     }
     set(false);
 
@@ -89,9 +108,9 @@
       var audio = new Audio();
       audio.preload = 'none';
       audio.src = s.preview;
-      button.addEventListener('click', function () {
-        if (audio.paused) audio.play().catch(function () {}); else { audio.pause(); audio.currentTime = 0; }
-      });
+      function toggle() { if (audio.paused) audio.play().catch(function () {}); else { audio.pause(); audio.currentTime = 0; } }
+      button.addEventListener('click', toggle);
+      status.addEventListener('click', toggle);
       function stopped() { set(false); line.style.width = '0'; }
       audio.addEventListener('play', function () { set(true); });
       audio.addEventListener('pause', stopped);
@@ -104,93 +123,112 @@
 
     // video: start a minute in, where the record is usually well under way
     var frame;
-    button.addEventListener('click', function () {
+    function open() {
+      if (frame) return;
       frame = el('iframe');
       frame.src = 'https://www.youtube-nocookie.com/embed/' + s.video + '?autoplay=1&start=60&rel=0&modestbranding=1';
       frame.allow = 'autoplay; encrypted-media';
       frame.title = label;
       frameBox.appendChild(frame);
       plate.classList.add('playing-video');
-      document.body.classList.add('red-lamp');
+      set(true);
       close.hidden = false;
       close.focus();
-    });
-    close.addEventListener('click', function () {
+    }
+    function shut() {
       if (frame) frame.remove();
+      frame = null;
       plate.classList.remove('playing-video');
-      document.body.classList.remove('red-lamp');
+      set(false);
       close.hidden = true;
       button.focus();
+    }
+    button.addEventListener('click', open);
+    status.addEventListener('click', function () { if (frame) shut(); else open(); });
+    close.addEventListener('click', shut);
+  }
+
+  function project(days) {
+    var wanted = new URLSearchParams(location.search).get('d');
+    var n = 0;
+    days.forEach(function (d, i) { if (d.date === wanted) n = i; });
+    var d = days[n];
+    var plate = today.querySelector('.screen');
+
+    var time = today.querySelector('[data-field=date]');
+    time.dateTime = d.date;
+    time.textContent = date(d.date);
+    if (n > 0) document.title = date(d.date) + ' — Photodiary';
+    today.querySelector('[data-field=exposure]').textContent = d.photo ? exposure(d.photo) : today.dataset.noPhoto;
+
+    var img = today.querySelector('[data-field=photo]');
+    if (d.photo) {
+      img.width = d.photo.width;
+      img.height = d.photo.height;
+      img.src = DATA + d.photo.src;
+      img.hidden = false;
+      develop(img);
+    }
+
+    var rec = today.querySelector('[data-field=record]');
+    rec.textContent = '';
+    var lines = [el('p', null, date(d.date) + '.'), el('p', null, d.photo ? exposure(d.photo) : today.dataset.noPhoto)];
+    if (d.record) {
+      rec.appendChild(el('p', null, 'On the turntable:'));
+      rec.appendChild(recordLine(d.record, true));
+      rec.appendChild(el('p', null, recordInfo(d.record)));
+      lines.push(recordLine(d.record));
+      lines.push(el('p', null, [d.record.label, d.record.year].filter(Boolean).join(', ') + '.'));
+      sound(plate, d.record.sound, d.record.artist + ', ' + d.record.title, today.querySelector('[data-field=status]'));
+    }
+    subtitles(today.querySelector('[data-field=subtitle]'), lines);
+
+    // the way to the neighbouring nights
+    var before = today.querySelector('[data-field=before]');
+    var later = today.querySelector('[data-field=later]');
+    if (n + 1 < days.length) { before.href = '/?d=' + days[n + 1].date; before.hidden = false; }
+    if (n > 0) { later.href = n === 1 ? '/' : '/?d=' + days[n - 1].date; later.hidden = false; }
+  }
+
+  function contactSheet(days) {
+    days.forEach(function (d, i) {
+      var li = el('li');
+      var a = el('a');
+      a.href = i === 0 ? '/' : '/?d=' + d.date;
+      a.setAttribute('aria-label', date(d.date) + (d.record ? ': ' + d.record.artist + ', ' + d.record.title : ''));
+      var frame = el('span', 'frame');
+      if (d.photo) {
+        var img = el('img');
+        img.src = DATA + d.photo.small;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.width = 640;
+        img.height = Math.round(640 * d.photo.height / d.photo.width);
+        frame.appendChild(img);
+        develop(img);
+      }
+      if (d.record) {
+        var sub = el('span', 'subtitle');
+        sub.appendChild(recordLine(d.record));
+        frame.appendChild(sub);
+      }
+      a.appendChild(frame);
+      var mark = el('span', 'mark');
+      mark.appendChild(el('span', null, String(days.length - i)));
+      mark.appendChild(el('span', null, date(d.date, shortDate)));
+      a.appendChild(mark);
+      li.appendChild(a);
+      sheet.appendChild(li);
     });
   }
 
+  flicker();
   fetch(root.dataset.source, { cache: 'no-cache' })
     .then(function (r) { return r.ok ? r.json() : []; })
     .then(function (days) {
       if (!Array.isArray(days) || !days.length) return;
-      var noPhoto = root.dataset.noPhoto;
-
-      if (today) {
-        var d = days[0];
-        var time = today.querySelector('[data-field=date]');
-        time.dateTime = d.date;
-        time.textContent = formatDate(d.date);
-        today.querySelector('[data-field=exposure]').textContent = d.photo ? exposure(d.photo) : noPhoto;
-        var img = today.querySelector('[data-field=photo]');
-        if (d.photo) {
-          img.width = d.photo.width;
-          img.height = d.photo.height;
-          img.src = DATA + d.photo.src;
-          img.hidden = false;
-          develop(img);
-        }
-        var r = today.querySelector('[data-field=record]');
-        r.textContent = '';
-        if (d.record) {
-          r.appendChild(el('p', 'turntable-head', 'On the turntable'));
-          record(d.record, r);
-          sound(today, d.record.sound, d.record.artist + ', ' + d.record.title);
-        }
-      }
-
-      if (archive) {
-        var camera = archive.dataset.camera;
-        var list = archive.querySelector('tbody');
-        days.forEach(function (d, i) {
-          var tr = el('tr');
-          tr.appendChild(el('td', 'nr', String(days.length - i)));
-          var th = el('th', 'title');
-          th.scope = 'row';
-          var t = el('time', null, formatDate(d.date));
-          t.dateTime = d.date;
-          th.appendChild(t);
-          tr.appendChild(th);
-          var cell = el('td', 'print-small');
-          if (d.photo) {
-            var a = el('a');
-            a.href = DATA + d.photo.src;
-            var img = el('img');
-            img.src = DATA + d.photo.small;
-            img.alt = archive.dataset.alt;
-            img.loading = 'lazy';
-            img.width = 640;
-            img.height = Math.round(640 * d.photo.height / d.photo.width);
-            a.appendChild(img);
-            cell.appendChild(a);
-            develop(img);
-          } else {
-            cell.appendChild(el('span', 'empty-print'));
-          }
-          tr.appendChild(cell);
-          tr.appendChild(el('td', 'medium', d.photo ? exposure(d.photo, camera) : noPhoto));
-          var desc = el('td', 'description');
-          if (d.record) record(d.record, desc);
-          tr.appendChild(desc);
-          list.appendChild(tr);
-        });
-        var empty = document.querySelector('.empty');
-        if (empty) empty.hidden = true;
-      }
+      if (today) project(days);
+      if (sheet) contactSheet(days);
     })
     .catch(function () {});
 })();

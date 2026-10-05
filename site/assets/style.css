@@ -1,127 +1,129 @@
-/* Photodiary — a dark room with one lamp on. Same family as hetwiel.dev (IM Fell, a catalogue),
-   but at night: the photograph hangs in a pool of tungsten light, the rest of the room is black.
-   The lamp flickers now and then (diary.js), and turns red while a record plays. */
+/* Photodiary — a projection in a dark room.
+   Each night is one frame on a screen; its light spills onto the wall, flickers now and then (diary.js)
+   and turns red while the record plays. The words come as subtitles, one line at a time.
+   Everything else is typed, like a note left on the desk at night. */
 
-@font-face { font-family: "IM Fell"; font-style: normal; font-weight: 400; font-display: swap; src: url("/assets/fonts/im-fell.woff2") format("woff2"); }
-@font-face { font-family: "IM Fell"; font-style: italic; font-weight: 400; font-display: swap; src: url("/assets/fonts/im-fell-italic.woff2") format("woff2"); }
+@font-face { font-family: "Courier Prime"; font-style: normal; font-weight: 400; font-display: swap; src: url("/assets/fonts/courier-prime.woff2") format("woff2"); }
+@font-face { font-family: "Courier Prime"; font-style: italic; font-weight: 400; font-display: swap; src: url("/assets/fonts/courier-prime-italic.woff2") format("woff2"); }
 
 :root {
-  --night: #000;          /* the room */
-  --wall: #3b2716;        /* where the lamp hits the wall */
-  --curtain: #5e0b08;     /* the lamp while a record plays */
-  --tungsten: #cbb48c;    /* text, as if read by lamplight */
-  --dim: #7a6a55;         /* text further from the lamp */
-  --rule: #3a2e22;
-  --column: 17rem;
+  --room: #000;
+  --paper: #b9b2a3;       /* typed text, read in the light of the screen */
+  --faint: #6c665b;
+  --subtitle: #ece3b4;    /* the slightly yellow white of old subtitles */
+  --spill: rgba(205, 198, 178, .09);
+  --red: rgba(150, 12, 8, .55);
+  --edge: 2.75rem;        /* width of the frame edges with the name and links */
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { background: var(--night); overflow-x: clip; }
-body {
-  position: relative; min-height: 100vh;
-  color: var(--tungsten); font: 400 1.125rem/1.6 "IM Fell", "Iowan Old Style", Georgia, serif;
-  -webkit-font-smoothing: antialiased; overflow-x: clip;
-}
-
-/* The lamp: a pool of light on the wall from above the photograph, a little right of centre.
-   Two layers so it can turn from tungsten to red without a jump. */
-body::before, body::after {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  transition: opacity 4s ease-in-out;
-}
-body::before { background: radial-gradient(ellipse 70% 62% at 54% 34%, var(--wall), transparent 70%); }
-body::after { background: radial-gradient(ellipse 70% 62% at 54% 34%, var(--curtain), transparent 68%); opacity: 0; }
-body.red-lamp::before { opacity: 0; }
-body.red-lamp::after { opacity: 1; }
-/* a flicker: no transition, so it is gone before you are sure you saw it */
-body.flicker::before, body.flicker::after { transition: none; opacity: .15; }
-body.flicker .print img.developed { filter: brightness(.55); transition: none; }
-
-a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .22em; text-decoration-color: var(--rule); }
-a:hover { text-decoration-color: var(--tungsten); }
-a:focus-visible, button:focus-visible { outline: 1px solid var(--tungsten); outline-offset: 4px; }
+html { background: var(--room); overflow-x: clip; }
+body { color: var(--paper); font: 400 1rem/1.65 "Courier Prime", "Courier New", monospace; overflow-x: clip; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .25em; text-decoration-color: var(--faint); }
+a:hover { color: var(--subtitle); text-decoration-color: currentColor; }
+a:focus-visible, button:focus-visible { outline: 1px dashed var(--subtitle); outline-offset: 4px; }
 cite { font-style: italic; }
-::selection { background: var(--curtain); color: var(--tungsten); }
+::selection { background: #5a0a07; color: var(--subtitle); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.skip { position: absolute; left: 1.5rem; top: -4rem; z-index: 6; background: var(--tungsten); color: var(--night); padding: .4rem .8rem; text-decoration: none; }
-.skip:focus { top: 1.5rem; }
+.skip { position: absolute; left: 4rem; top: -4rem; z-index: 6; background: var(--paper); color: var(--room); padding: .3rem .7rem; text-decoration: none; }
+.skip:focus { top: 1rem; }
 
-.masthead, main, footer { width: min(100% - 4rem, 68rem); margin-inline: auto; }
-@media (max-width: 600px) { .masthead, main, footer { width: calc(100% - 2rem); } }
+/* ── The edges: the name and the links run along the sides, like markings on a strip of film ── */
+.edge {
+  position: fixed; top: 0; bottom: 0; z-index: 4; width: var(--edge);
+  display: flex; align-items: center; justify-content: center; gap: 2.5rem;
+  writing-mode: vertical-rl; font-size: .8125rem; color: var(--faint);
+}
+.edge a { text-decoration: none; white-space: nowrap; }
+.edge a[aria-current] { color: var(--paper); }
+.edge-left { left: 0; transform: rotate(180deg); }
+.edge-right { right: 0; }
 
-/* the masthead is barely lit; you find it rather than see it */
-.masthead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; padding: 2rem 0 0; font-size: 1rem; color: var(--dim); }
-.mark { font-style: italic; text-decoration: none; }
-.masthead nav { display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; }
-.masthead nav a { text-decoration: none; white-space: nowrap; transition: color .6s; }
-.masthead nav a:hover, .masthead nav a[aria-current], .mark:hover { color: var(--tungsten); }
+main, footer { margin-inline: var(--edge); }
+footer { padding: 6rem 1rem 2.5rem; text-align: center; font-size: .8125rem; color: var(--faint); }
 
-footer { padding: 10rem 0 3rem; font-size: .9375rem; color: var(--dim); }
+/* ── Tonight: the screen fills the first view; nothing else is lit ── */
+.today { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 1.1rem; padding: 2rem 0 3rem; }
+.screen { position: relative; margin: 0; width: min(100vw - 2 * var(--edge) - 2rem, (100svh - 13rem) * 9 / 5, 74rem); }
 
-/* ── Today: the photograph hangs low on the wall, with a small label underneath ── */
-.today { padding-top: clamp(6rem, 22vh, 14rem); }
-.plate { margin: 0 auto; width: min(100%, 58rem); }
-.print { position: relative; width: 100%; aspect-ratio: 9 / 5; background: #050403; overflow: hidden; box-shadow: 0 2.5rem 5rem -1rem #000; }
-.print img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: brightness(.2); transition: opacity 3.2s cubic-bezier(.6, 0, .3, 1), filter 5s cubic-bezier(.6, 0, .3, 1); }
+/* the light of the screen falls on the wall around it; while the record plays, it goes red */
+.screen::before, .screen::after {
+  content: ""; position: absolute; inset: -30% -18%; z-index: -1; pointer-events: none;
+  transition: opacity 5s ease-in-out;
+}
+.screen::before { background: radial-gradient(closest-side, var(--spill), transparent); }
+.screen::after { background: radial-gradient(closest-side, var(--red), transparent); opacity: 0; }
+.red-lamp .screen::before { opacity: 0; }
+.red-lamp .screen::after { opacity: 1; }
+
+.print { position: relative; width: 100%; aspect-ratio: 9 / 5; background: #030303; overflow: hidden; }
+.print img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: brightness(.15); transition: opacity 3.5s cubic-bezier(.6, 0, .3, 1), filter 6s cubic-bezier(.6, 0, .3, 1); }
 .print img.developed { opacity: 1; filter: none; }
 .print iframe { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; border: 0; background: #000; }
 
+/* a flicker: no transition, so it is gone before you are sure you saw it */
+.flicker .print img.developed { filter: brightness(.45); transition: none; }
+.flicker .screen::before, .flicker .screen::after { opacity: .2; transition: none; }
+
 .play { position: absolute; inset: 0; z-index: 1; width: 100%; background: none; border: 0; cursor: pointer; }
-.progress { position: absolute; left: 0; bottom: 0; z-index: 3; height: 1px; width: 0; background: #a3221b; transition: width .25s linear; }
-.close { position: absolute; top: .8rem; right: .8rem; z-index: 3; font: inherit; font-size: .9375rem; color: var(--tungsten); background: #000; border: 0; padding: .15rem .6rem; cursor: pointer; }
+.progress { position: absolute; left: 0; bottom: 0; z-index: 3; height: 2px; width: 0; background: #9c1c14; transition: width .25s linear; }
+.close { position: absolute; top: .75rem; right: .75rem; z-index: 3; font: inherit; font-size: .875rem; color: var(--paper); background: #000; border: 0; padding: .1rem .55rem; cursor: pointer; }
 
-/* the label: placed under the left edge, offset, like a card someone pinned up by hand */
-.caption { display: grid; gap: .9rem 3rem; margin-top: 1.4rem; padding-left: 7%; font-size: 1rem; line-height: 1.5; }
-@media (min-width: 760px) { .caption { grid-template-columns: 13rem minmax(0, 28rem); } }
-.caption .exposure { color: var(--dim); }
-.caption .exposure time { color: var(--tungsten); }
-.turntable-head { font-style: italic; color: var(--dim); }
-.caption .turntable-info { color: var(--dim); }
-.playing { font-style: normal; margin-left: .7rem; color: var(--tungsten); }
-.empty-text { font-style: italic; color: var(--dim); }
-@media (max-width: 600px) { .caption { padding-left: 0; font-size: .9375rem; } }
+/* subtitles: one line at a time, over the bottom of the frame */
+.subtitle {
+  position: absolute; left: 6%; right: 6%; bottom: 7%; z-index: 2; pointer-events: none;
+  text-align: center; font-size: clamp(.8125rem, 1.55vw, 1.3rem); line-height: 1.35; color: var(--subtitle);
+  text-shadow: 0 0 2px #000, 0 0 2px #000, 0 1px 3px #000;
+  opacity: 0; transition: opacity .35s;
+}
+.subtitle.on { opacity: 1; }
+.playing-video .subtitle, .playing-video .play { display: none; }
 
-/* about: far below, after a stretch of dark */
-.about { display: grid; gap: 1rem 4rem; margin-top: 16rem; color: var(--dim); }
-@media (min-width: 860px) { .about { grid-template-columns: var(--column) minmax(0, 32rem); } }
-.about h1 { font: inherit; font-size: 1rem; }
-.about h1 cite { color: var(--tungsten); }
-.about .more { margin-top: 1rem; }
-.about a { color: var(--tungsten); }
+/* under the screen, small: whether it plays, and the way to the other nights */
+.reel { width: 100%; display: flex; flex-wrap: wrap; gap: .25rem 2rem; justify-content: flex-end; font-size: .8125rem; color: var(--faint); }
+.reel .status { margin-right: auto; }
+.reel a { text-decoration: none; }
+.listen { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.listen:hover { color: var(--subtitle); }
 
-/* ── Archive: a register read in the dark; the row under the cursor gets the light ── */
-.intro { padding: 8rem 0 1rem; }
-.intro h1 { font-weight: 400; font-size: 1.375rem; }
-.intro p { margin-top: 1.25rem; max-width: 30rem; color: var(--dim); }
-.register { width: 100%; border-collapse: collapse; margin-top: 4rem; font-size: 1rem; line-height: 1.5; color: var(--dim); }
-.register th, .register td { text-align: left; vertical-align: top; padding: 1.1rem 1.5rem 1.1rem 0; }
-.register thead th { font-weight: 400; font-style: italic; font-size: .9375rem; padding-top: 0; padding-bottom: .6rem; border-bottom: 1px solid var(--dim); vertical-align: bottom; }
-.register tbody tr { border-bottom: 1px solid var(--rule); transition: color 1.2s; }
-.register tbody tr:hover, .register tbody tr:focus-within { color: var(--tungsten); }
-.register tbody th { font-weight: 400; }
-.register .nr { width: 3.25rem; }
-.register .title { width: 11rem; }
-.register .medium { width: 13rem; }
-.register .print-small { width: 12rem; }
-.register .print-small a, .register .print-small img { display: block; }
-.register .print-small img { width: 100%; height: auto; aspect-ratio: 9 / 5; object-fit: cover; background: #050403; opacity: 0; filter: brightness(.55); transition: opacity 1.6s ease-out, filter 1.2s; }
-.register .print-small img.developed { opacity: .85; }
-.register tr:hover .print-small img.developed, .register tr:focus-within .print-small img.developed { opacity: 1; filter: none; }
-.register .empty-print { display: block; aspect-ratio: 9 / 5; background: #050403; }
-.register:has(tbody:empty) { display: none; }
-@media (max-width: 760px) {
-  .register thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .register tbody tr:first-child { border-top: 1px solid var(--dim); }
-  .register tr { display: grid; grid-template-columns: 2.25rem 1fr; column-gap: .5rem; padding: 1rem 0; }
-  .register th, .register td { display: block; width: auto; padding: 0; grid-column: 2; }
-  .register .nr { grid-column: 1; grid-row: 1 / span 4; }
-  .register .print-small { margin-top: .6rem; max-width: 20rem; }
-  .register .print-small img.developed { opacity: 1; filter: none; }
-  .register .medium { margin-top: .5rem; font-size: .9375rem; }
-  .register .description { margin-top: .35rem; }
+/* ── The note: further down, typed, after a stretch of dark ── */
+.note { width: min(100%, 36rem); margin: 10rem auto 0; padding-inline: 1rem; }
+.note h1 { font: inherit; margin-bottom: 1.5rem; color: var(--faint); }
+.note h1 cite { color: var(--paper); }
+.note p + p { margin-top: 1.1rem; }
+
+/* ── Archive: a contact sheet ── */
+.archive { padding: 4.5rem 1.5rem 0; }
+.sheet-head { max-width: 36rem; }
+.sheet-head h1 { font: inherit; color: var(--paper); }
+.sheet-head p { color: var(--faint); }
+.sheet { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 2.25rem .6rem; margin-top: 3.5rem; }
+.sheet a { display: block; text-decoration: none; color: var(--faint); }
+.frame { position: relative; display: block; aspect-ratio: 9 / 5; background: #050505; overflow: hidden; }
+.frame img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: brightness(.6); transition: opacity 1.6s ease-out, filter .8s; }
+.frame img.developed { opacity: .8; }
+.frame .subtitle { font-size: .75rem; bottom: 8%; left: 4%; right: 4%; }
+.sheet a:hover .frame img.developed, .sheet a:focus-visible .frame img.developed { opacity: 1; filter: none; }
+.sheet a:hover .subtitle, .sheet a:focus-visible .subtitle { opacity: 1; }
+.sheet a:hover { color: var(--paper); }
+.mark { display: flex; justify-content: space-between; margin-top: .35rem; font-size: .75rem; }
+.sheet:empty { display: none; }
+.sheet:not(:empty) + .empty { display: none; }
+.empty { margin-top: 3rem; color: var(--faint); }
+
+@media (max-width: 600px) {
+  :root { --edge: 2rem; }
+  .edge { font-size: .75rem; gap: 1.75rem; }
+  .screen { width: calc(100vw - 2 * var(--edge) - .5rem); }
+  .today { padding-bottom: 6rem; }
+  .archive { padding-inline: .25rem; }
+  .sheet { grid-template-columns: 1fr 1fr; gap: 1.5rem .35rem; }
+  .mark { font-size: .6875rem; }
+  .frame .subtitle { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .print img, .register .print-small img, body::before, body::after { transition: none; }
+  .print img, .frame img, .screen::before, .screen::after, .subtitle { transition: none; }
 }

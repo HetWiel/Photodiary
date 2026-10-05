@@ -7,52 +7,48 @@
   <meta name="description" content="One photograph and one record, every night. Published by a script.">
   <meta name="theme-color" content="#000000">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/fonts/im-fell.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/im-fell-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/courier-prime.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/assets/diary.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
-  <header class="masthead">
-    <a class="mark" href="/">Photodiary</a>
-    <nav aria-label="Menu">
-      <a href="/" aria-current="page">Today</a>
-      <a href="/archive/">Archive</a>
-      <a href="https://hetwiel.dev">hetwiel.dev</a>
-    </nav>
-  </header>
+  <!-- the edges of the frame: name on the left, the way out on the right -->
+  <nav class="edge edge-left" aria-label="Photodiary"><a href="/" aria-current="page">Photodiary</a></nav>
+  <nav class="edge edge-right" aria-label="Menu"><a href="/archive/">Archive</a><a href="https://hetwiel.dev">hetwiel.dev</a></nav>
 
   <main id="content">
-    <!-- Today's plate. diary.js fills it from /data/index.json (written by server/). -->
+    <!-- One night, projected. diary.js fills it from /data/index.json (written by server/);
+         /?d=2026-10-04 projects an earlier night. -->
     <section class="today" data-source="/data/index.json" data-no-photo="No exposure.">
-      <figure class="plate">
+      <figure class="screen">
         <div class="print">
           <img data-field="photo" alt="Black-and-white photograph, developed by a script" decoding="async" hidden>
           <button type="button" class="play" data-field="play" hidden data-listen="Listen" data-stop="Stop" aria-label="Listen"></button>
           <button type="button" class="close" data-field="close" hidden>Close</button>
+          <p class="subtitle" data-field="subtitle" aria-hidden="true"></p>
           <span class="progress" aria-hidden="true"></span>
         </div>
-        <figcaption class="caption">
-          <div class="exposure">
-            <p><time data-field="date"></time></p>
-            <p data-field="exposure"></p>
-          </div>
-          <div class="turntable" data-field="record">
-            <p class="empty-text">Nothing yet. The first day appears after midnight.</p>
-          </div>
+        <!-- the full caption, for screen readers; on screen it plays as subtitles -->
+        <figcaption class="visually-hidden">
+          <p><time data-field="date"></time>. <span data-field="exposure"></span></p>
+          <div data-field="record"><p>Nothing yet. The first night appears after midnight.</p></div>
         </figcaption>
       </figure>
+      <p class="reel">
+        <span class="status" data-field="status"></span>
+        <a data-field="later" hidden>The night after</a>
+        <a data-field="before" hidden>The night before</a>
+      </p>
     </section>
 
-    <section class="about">
-      <h1><cite>Photodiary</cite>, 2026</h1>
-      <div>
-        <p>Every night a script takes one photograph from a queue and one record from the crate,
-          and publishes the pair. The same script develops the photograph: black and white,
-          deep shadows, grain. Faces are refused. Click the photograph to hear the record.</p>
-        <p class="more"><a href="/archive/">All days</a></p>
-      </div>
+    <section class="note">
+      <h1><cite>Photodiary</cite>, 2026.</h1>
+      <p>Every night a script takes one photograph from a queue and one record from the crate,
+        and publishes the pair. The same script develops the photograph: black and white,
+        deep shadows, grain. Faces are refused.</p>
+      <p>Click the photograph to hear the record.</p>
+      <p><a href="/archive/">All nights</a></p>
     </section>
   </main>
 
